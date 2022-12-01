@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>character</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+			.label {
+				color: #FFF;
+				font-family: sans-serif;
+				padding: 2px;
+				background: rgba( 0, 0, 0, .6 );
+			}
+		</style>
+	</head>
+	<body>
+		<script src="../../js/three.js"></script>
+		<script src="../../js/loaders/OBJLoader.js"></script>
+		<script src="../../js/loaders/MTLLoader.js"></script>
+		<script src="../../js/loaders/GLTFLoader.js"></script>
+		<script src="../../js/libs/fflate.min.js"></script>
+		<script src="../../js/loaders/FBXLoader.js"></script>
+		<script src="../../js/controls/OrbitControls.js"></script>
+		<script src="../../js/libs/tween.umd.js"></script>
+		<script src="../../js/renderers/CSS2DRenderer.js"></script>
+		<script>
+			let skeleton, actions, mixer;
+			let label_daji;
+      // 建立场景、相机、渲染器
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+			var clock = new THREE.Clock();
+
+			var renderer = new THREE.WebGLRenderer();
+			// renderer.setClearColor(new THREE.Color(0xffffff, 1.0));
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+			
+
+			// 创建一个纹理图片加载器加载图片
+			// var textureLoader = new THREE.TextureLoader();
+			// var texture = textureLoader.load('./model/bg.jpeg'); // 加载背景图片
+			// scene.background = texture // 纹理对象Texture赋值给场景对象的背景属性.background
+			const reflectionCube = new THREE.CubeTextureLoader()
+				.setPath( 'model/' )
+				.load( [ '1.jpg', '2.jpeg', '3.jpeg', '4.jpeg', '5.jpg', '6.jpeg' ] );
+			reflectionCube.encoding = THREE.sRGBEncoding;
+			scene.background = reflectionCube;
+
+			// 立方体
+			var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+			var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+			var cube = new THREE.Mesh( geometry, material );
+			cube.translateY(3)
+			cube.name = 'geometry'
+			scene.add( cube );
+
+			//点光源
+			var point = new THREE.PointLight(0xFFFFFF, 0.9);
+			point.position.set(5000, 1000, 640000); //点光源位置
+			scene.add(point); //点光源添加到场景8
+			// 环境光
+			var ambient = new THREE.AmbientLight(0xFFFFFF,0.3);
+			scene.add(ambient);
+			// 给场景添加太阳光
+			// let Sun = new THREE.DirectionalLight(0xB3E8FF, 0.22);
+			// Sun.position.set(40, 10, -20000000)
+			// Sun.castShadow = true;
+			//设置相机渲染面积
+			// Sun.shadow.camera.near = 0.01;
+			// Sun.shadow.camera.far = 60;
+			// Sun.shadow.camera.top = 22;
+			// Sun.shadow.camera.bottom = -22;
+			// Sun.shadow.camera.left = -35;
+			// Sun.shadow.camera.right = 35;
+			// // //设置阴影分辨率
+			// Sun.shadow.mapSize.width = 2048;  // default
+			// Sun.shadow.mapSize.height = 2048; // default
+			//阴影限制
+			// Sun.shadow.radius = 1;
+			// scene.add(Sun);
+
+
+			var OBJLoader = new THREE.OBJLoader();//obj加载器
+			var MTLLoader = new THREE.MTLLoader();//材质文件加载器
+			var daji, ironMan
+			let labelRenderer = new THREE.CSS2DRenderer();
+			labelRenderer.setSize( window.innerWidth, window.innerHeight );
+			labelRenderer.domElement.style.position = 'absolute';
+			labelRenderer.domElement.style.top = '0px';
+			document.body.appendChild( labelRenderer.domElement );
+
+			// var FBXloader = new THREE.FBXLoader();
+			// FBXloader.load('./model/boiler/锅炉+着色+灯光_530.fbx', function (object) {
+			// 	object.traverse(function (child) {
+			// 			if (child.isMesh) {
+			// 					child.castShadow = true;
+			// 					child.receiveShadow = true;
+			// 			}
+			// 	});
+			// 	// object.rotation.y = Math.PI / 2;
+			// 	//object.rotation.x = -Math.PI/2 - Math.PI/12;
+			// 	object.position.set(0, -5, 0);
+			// 	object.scale.set(.08, .08, .08);
+			// 	scene.add(object);
+			// });
+			
+			// MTLLoader.load('./model/daji/file.mtl', function(materials) {
+			// 	// 返回一个包含材质的对象MaterialCreator
+			// 	//obj的模型会和MaterialCreator包含的材质对应起来
+			// 	OBJLoader.setMaterials(materials);
+			// 	OBJLoader.load('./model/daji/file.obj', function(obj) {
+			// 		obj.scale.set(.002, .002, .002); //放大obj组对象
+			// 		// obj.position.set(0, -5, 0);
+			// 		scene.add(obj);//返回的组对象插入场景中
+			// 		obj.children[0].geometry.center();//网格模型的几何体居中
+			// 	})
+			// }, undefined, function ( error ) {
+			// 	console.error( error );
+			// })
+
+			MTLLoader.load('./model/ironMan/IronMan.mtl', function(materials) {
+				// 返回一个包含材质的对象MaterialCreator
+				//obj的模型会和MaterialCreator包含的材质对应起来
+				OBJLoader.setMaterials(materials);
+				OBJLoader.load('./model/ironMan/IronMan.obj', function(obj) {
+					ironMan = obj
+					obj.scale.set(0.01, 0.01, 0.01); //放大obj组对象
+					// obj.translateX(4) // 沿着x轴平移
+					obj.translateY(-2)
+					obj.name = 'ironMan'
+					scene.add(obj);//返回的组对象插入场景中
+					obj.children[0].geometry.center();//网格模型的几何体居中
+				})
+			}, undefined, function ( error ) {
+				console.error( error );
+			})
+
+			MTLLoader.load('./model/daji/file.mtl', function(materials) {
+				// 返回一个包含材质的对象MaterialCreator
+				//obj的模型会和MaterialCreator包含的材质对应起来
+				OBJLoader.setMaterials(materials);
+				OBJLoader.load('./model/daji/file.obj', function(obj) {
+					daji = obj
+					obj.scale.set(.002, .002, .002); //放大obj组对象
+					scene.add(obj);//返回的组对象插入场景中
+					obj.children[0].geometry.center();//网格模型的几何体居中
+					// obj.translateX(4) // 沿着x轴平移
+					obj.name = 'daji'
+					obj.userData.lines = [
+						'来和妲己玩耍吧~',
+						'没有心，就不会受伤',
+						'尾巴，不只能用来挠痒痒哦(^_−)',
+						'让妲己看看你的心',
+						'你的主人制造你时，好像有偷工减料耶'
+					]
+
+					let keleton_daji = new THREE.SkeletonHelper( obj );
+					keleton_daji.visible = true;
+					scene.add( keleton_daji );
+
+					// 标签
+					label_daji = document.createElement( 'div' );
+					label_daji.className = 'label';
+					label_daji.textContent = daji.userData.lines[0];
+					label_daji.style.marginTop = '-15em';
+					const earthLabel = new THREE.CSS2DObject( label_daji );
+					// earthLabel.position.set( 0, 10, 10 );
+					daji.add( earthLabel );
+					earthLabel.layers.set( 0 );
+				})
+			}, undefined, function ( error ) {
+				console.error( error );
+			})
+
+
+			var loader = new THREE.GLTFLoader();
+			// 骨骼动画模型
+			loader.load( 'model/Soldier.glb', function ( gltf ) {
+				gltf.scene.scale.set(1.5,1.5,1.5)
+				gltf.scene.translateX(-4)
+				gltf.scene.rotation.y = 5.1
+				scene.add( gltf.scene );
+
+				skeleton = new THREE.SkeletonHelper( gltf.scene );
+				skeleton.visible = true;
+				scene.add( skeleton );
+
+				const animations = gltf.animations;
+				mixer = new THREE.AnimationMixer( gltf.scene );
+				let idleAction = mixer.clipAction( animations[ 0 ] );
+				let walkAction = mixer.clipAction( animations[ 3 ] );
+				let runAction = mixer.clipAction( animations[ 1 ] );
+				actions = [ idleAction, walkAction, runAction ];
+
+				activateAllActions(idleAction, walkAction, runAction);
+				
+			}, undefined, function ( error ) {
+				console.error( error );
+			} );
+
+			function activateAllActions(idleAction, walkAction, runAction) {
+				actions.forEach( function ( action ) {
+					action.play();
+				} );
+			}
+
+			// 平移
+			function translate (obj, axis, dis) {
+				obj && (obj.position[axis] += dis)
+			}
+
+			// 旋转
+			function rotation (obj, axis, dis) {
+				obj && (obj.rotation[axis] += dis)
+			}
+
+			function tweenObj(obj) {
+				if (ironMan) {
+					var tweenA = new TWEEN.Tween(ironMan.position)
+						.to({ y: 20 }, 1000)
+						.onStart(function() {
+							ironMan.position.y = 0
+						})
+						.start();
+				}
+				if (daji) {
+					var tweenA = new TWEEN.Tween(daji.rotation)
+						.to({ y: daji.rotation.y + 2*Math.PI }, 700)
+						.onStart(function() {
+							daji.rotation.y = 0
+						})
+						.start();
+				}
+			}
+
+
+			// 交互
+			var raycaster = new THREE.Raycaster()
+			var mouse = new THREE.Vector2()
+			labelRenderer.domElement.addEventListener("mousedown", (event) => {
+				mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+				mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+				raycaster.setFromCamera(mouse, camera);
+				var intersects = raycaster.intersectObjects(scene.children, true);
+				if (intersects.length > 0) {
+					console.log(intersects)
+					var obj = intersects[0].object;
+					if (obj.name === 'geometry') {
+						obj.material.color.set("#ff0000");
+						obj.material.needsUpdate= true;
+					}
+					if (obj.name.includes('DaJi')) {
+						tweenObj()
+						label_daji.innerHTML = daji.userData.lines[[Math.floor(Math.random()*daji.userData.lines.length)]];
+					}
+				}
+			})
+
+			renderer.domElement.addEventListener('mouseenter', (e) => {
+				mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+				mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+				raycaster.setFromCamera(mouse, camera);
+				var intersects = raycaster.intersectObjects(scene.children, true);
+				if (intersects.length > 0) {
+					console.log(intersects)
+					var obj = intersects[0].object;
+					if (obj.name.includes('DaJi')) {
+						label_daji.innerHTML = daji.userData.lines[[Math.floor(Math.random()*daji.userData.lines.length)]];
+					}
+				}
+			});
+
+
+			// 挪动相机位置，scene.add()的时候，物体将会被添加到(0,0,0)坐标
+			camera.position.z = 5;
+
+			// 渲染场景
+			function animate() {
+				requestAnimationFrame( animate ); // 切到其他标签页时，动画会暂停
+				renderer.render( scene, camera );
+				cube.rotation.x += 0.01;
+				cube.rotation.y += 0.01;
+				rotation(cube, 'x', 0.01)
+				rotation(cube, 'y', 0.01)
+				// tweenObj()
+				TWEEN.update()
+
+				translate(ironMan, 'y', 0.01)
+				translate(ironMan, 'Y', -5)
+				if (ironMan) {
+					const timer = Date.now() * 0.00025;
+					ironMan.position.x = Math.sin( timer * 7 ) * 3;
+					ironMan.position.y = Math.cos( timer * 5 ) * 4;
+					ironMan.position.z = Math.cos( timer * 3 ) * 3;
+				}
+
+				let mixerUpdateDelta = clock.getDelta();
+				if (mixer) mixer.update(mixerUpdateDelta);
+
+				labelRenderer.render( scene, camera );
+			}
+			animate();
+
+
+			var controls = new THREE.OrbitControls(camera, labelRenderer.domElement);//创建控件对象
+			// controls.addEventListener('change', animate);//监听鼠标、键盘事件
+
+			// 窗口变动触发的方法
+			function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+				labelRenderer.setSize( window.innerWidth, window.innerHeight );
+    	}
+
+			addEventListener('resize', onWindowResize, false);
+
+		</script>
+	</body>
+</html>

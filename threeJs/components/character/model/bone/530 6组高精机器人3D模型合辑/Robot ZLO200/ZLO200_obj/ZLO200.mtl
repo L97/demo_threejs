@@ -1,0 +1,55 @@
+# Max2Mtl Version 4.0 Mar 10th, 2001
+#
+# Multi/Sub main_mat (6) to come 
+#
+newmtl Bronze_material
+Ka  0.0 0.0 0.0
+Kd  0.1 0.1 0.1
+Ks  0.5 0.5 0.5
+d  1.0
+Ns  10.0
+illum 2
+#
+newmtl metal_titanium_black
+Ka  0.0 0.0 0.0
+Kd  0.1 0.1 0.1
+Ks  0.5 0.5 0.5
+d  1.0
+Ns  10.0
+illum 2
+#
+newmtl Rubber_by_Monaro_PL
+Ka  0.0 0.0 0.0
+Kd  0.0 0.0 0.0
+Ks  0.1 0.1 0.1
+d  1.0
+Ns  10.0
+illum 2
+#
+newmtl Fotovoltaico
+Ka  0.0 0.0 0.0
+Kd  0.7 0.7 0.7
+Ks  0.6 0.6 0.6
+d  1.0
+Ns  0.0
+illum 2
+#
+newmtl acid_glasss
+Ka  0.0 0.0 0.0
+Kd  0.0 0.0 0.0
+Ks  1.0 1.0 1.0
+d  0.0
+Ns  10.0
+illum 2
+#
+newmtl light
+Ka  0.0 0.0 0.0
+Kd  0.0 0.0 0.0
+Ks  0.0 0.0 0.0
+d  1.0
+Ns  0.0
+illum 2
+#
+# Multi/Sub main_mat done 
+#
+# EOF
